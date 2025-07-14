@@ -151,7 +151,7 @@
       for (const n in e) t.name = t.name.replace(`{{${n}}}`, e[n]);
     if (
       (s.showTimestamp &&
-        (t.timestamps = { start: Math.floor(Date.now() / 1000) }),
+        (t.timestamps = { start: Math.floor(Date.now() / 1000 / 1000) }),
       e.album)
     ) {
       const n = await U([e.albumArt]);
@@ -274,7 +274,7 @@
                 { style: { color: "#FF0000" } },
                 "This field is required!",
               ),
-            placeholder: "wumpus123",
+            placeholder: "mxtiy",
             returnKeyType: "done",
           }),
           a.React.createElement(d, null),
