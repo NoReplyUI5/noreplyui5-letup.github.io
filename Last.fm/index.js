@@ -187,19 +187,32 @@
     if (((r.lastTrackUrl = e.url), t.name.includes("{{")))
       for (const n in e) t.name = t.name.replace(`{{${n}}}`, e[n]);
     
-    // Enhanced timestamp handling for progress bar
+    // Enhanced timestamp handling
     if (s.showTimestamp) {
       const now = Date.now();
-      const startTime = Math.floor(now / 1000);
+      let actualStartTime;
       
-      t.timestamps = { start: startTime };
+      // Calculate when the song actually started
+      if (e.duration && e.duration > 0) {
+        // If we have duration, estimate start time based on current time minus some elapsed time
+        // Since we don't know exact elapsed time, we'll use current time as start
+        actualStartTime = Math.floor(now / 1000);
+      } else {
+        // Without duration info, use current time
+        actualStartTime = Math.floor(now / 1000);
+      }
       
-      // If we have track duration and progress bar is enabled, set end time for progress bar
+      // Show progress bar with song duration
       if (s.showProgressBar && e.duration && e.duration > 0) {
-        const endTime = startTime + e.duration;
-        t.timestamps.end = endTime;
+        const endTime = actualStartTime + e.duration;
+        t.timestamps = { start: actualStartTime, end: endTime };
         
-        i(`--> Setting timestamps: start=${startTime}, end=${endTime}, duration=${e.duration}s`);
+        i(`--> Setting timestamps: start=${actualStartTime}, end=${endTime}, duration=${e.duration}s`);
+      } else {
+        // Show exact time when song started
+        t.timestamps = { start: actualStartTime };
+        
+        i(`--> Setting song start time timestamp: ${actualStartTime}`);
       }
     }
     
