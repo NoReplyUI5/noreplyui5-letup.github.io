@@ -47,6 +47,37 @@
       JSON.stringify(L, null, 4)
     );
   }
+
+  // Add function to get detailed track info including duration
+  async function getTrackInfo(artist, track) {
+    const params = new URLSearchParams({
+      method: "track.getInfo",
+      api_key: u.LFM_API_KEY,
+      artist: artist,
+      track: track,
+      format: "json",
+      username: s.username // Include username to get user-specific data
+    }).toString();
+    
+    try {
+      const response = await fetch(`https://ws.audioscrobbler.com/2.0/?${params}`);
+      if (!response.ok) return null;
+      
+      const data = await response.json();
+      const trackData = data?.track;
+      
+      if (!trackData) return null;
+      
+      return {
+        duration: trackData.duration ? parseInt(trackData.duration) : null,
+        playcount: trackData.userplaycount || trackData.playcount || null
+      };
+    } catch (error) {
+      console.error("Failed to fetch track info:", error);
+      return null;
+    }
+  }
+
   async function O() {
     const e = new URLSearchParams({
         method: "user.getrecenttracks",
@@ -62,6 +93,10 @@
     const n = await t.json(),
       l = n?.recenttracks?.track?.[0];
     if ((c("lastAPIResponse", l), !l)) throw n;
+    
+    // Get additional track info including duration
+    const trackInfo = await getTrackInfo(l.artist.name, l.name);
+    
     return {
       name: l.name,
       artist: l.artist.name,
@@ -75,6 +110,8 @@
       date: l.date?.["#text"] ?? "now",
       nowPlaying: !!l["@attr"]?.nowplaying,
       loved: l.loved === "1",
+      duration: trackInfo?.duration || null, // Track duration in seconds
+      playcount: trackInfo?.playcount || null
     };
   }
   async function V(e) {
@@ -149,13 +186,31 @@
     };
     if (((r.lastTrackUrl = e.url), t.name.includes("{{")))
       for (const n in e) t.name = t.name.replace(`{{${n}}}`, e[n]);
-    if (
-      (s.showTimestamp &&
-        (t.timestamps = { start: Math.floor(Date.now() / 1000 / 1000) }),
-      e.album)
-    ) {
+    
+    // Enhanced timestamp handling for progress bar
+    if (s.showTimestamp) {
+      const now = Date.now();
+      const startTime = Math.floor(now / 1000);
+      
+      t.timestamps = { start: startTime };
+      
+      // If we have track duration and progress bar is enabled, set end time for progress bar
+      if (s.showProgressBar && e.duration && e.duration > 0) {
+        const endTime = startTime + e.duration;
+        t.timestamps.end = endTime;
+        
+        i(`--> Setting timestamps: start=${startTime}, end=${endTime}, duration=${e.duration}s`);
+      }
+    }
+    
+    if (e.album) {
       const n = await U([e.albumArt]);
       t.assets = { large_image: n[0], large_text: `on ${e.album}` };
+      
+      // Add small image for loved tracks
+      if (e.loved) {
+        t.assets.small_text = "♥ Loved Track";
+      }
     }
     (i("--> Setting activity..."), c("lastActivity", t), i(t));
     try {
@@ -199,6 +254,7 @@
   }
   const r = {};
   _.plugin.storage.ignoreSpotify ??= !0;
+  _.plugin.storage.showProgressBar ??= !0; // Default to true for progress bar
   const s = { ..._.plugin.storage };
   var B = {
     settings: h.lazy(function () {
@@ -298,6 +354,18 @@
             value: e.showTimestamp,
             onValueChange: function (n) {
               return (e.showTimestamp = n);
+            },
+          }),
+          a.React.createElement(d, null),
+          a.React.createElement(T, {
+            label: "Show progress bar",
+            subLabel: "Show song progress bar (requires track duration data)",
+            leading: a.React.createElement(E, {
+              source: o.getAssetIDByName("ic_progress_activity"),
+            }),
+            value: e.showProgressBar,
+            onValueChange: function (n) {
+              return (e.showProgressBar = n);
             },
           }),
           a.React.createElement(d, null),
