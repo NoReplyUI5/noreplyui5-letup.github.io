@@ -91,7 +91,7 @@ async function update() {
     // Set timestamps
     if (currentSettings.showTimestamp) {
         activity.timestamps = {
-            start: Date.now()| 0
+            start: (Date.now() / 1000)| 0
         };
     }
 
