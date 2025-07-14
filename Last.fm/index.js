@@ -359,8 +359,8 @@
           }),
           a.React.createElement(d, null),
           a.React.createElement(T, {
-            label: "Show song start time",
-            subLabel: "Show the time when the current song started playing",
+            label: "Show exact time",
+            subLabel: "Show the current time when the song status was set",
             leading: a.React.createElement(E, {
               source: o.getAssetIDByName("clock"),
             }),
