@@ -359,8 +359,8 @@
           }),
           a.React.createElement(d, null),
           a.React.createElement(T, {
-            label: "Show time elapsed",
-            subLabel: "Show the time elapsed since the song started playing",
+            label: "Show song start time",
+            subLabel: "Show the time when the current song started playing",
             leading: a.React.createElement(E, {
               source: o.getAssetIDByName("clock"),
             }),
